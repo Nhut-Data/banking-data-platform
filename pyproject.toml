@@ -1,0 +1,22 @@
+[project]
+name = "banking-data-platform"
+version = "0.1.0"
+description = "Banking ETL pipeline: batch (CSV) + simulated streaming (Kafka) -> BigQuery"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.2",
+    "google-cloud-bigquery>=3.25",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "python-dotenv>=1.0",
+    "kafka-python>=2.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.2",
+    "ruff>=0.5",
+]
+
+[tool.ruff]
+line-length = 100
