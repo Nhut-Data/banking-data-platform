@@ -14,4 +14,6 @@ airflow/logs/
 *.egg-info/
 .ruff_cache/
 echo "google-cloud-sdk/" >> .gitignore
-echo "exit/" >> .gitignore
+echo "exit/" >> .gitignorea.csv
+data/raw/csv/*.csv
+*.db
