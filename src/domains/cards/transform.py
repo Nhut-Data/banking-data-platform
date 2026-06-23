@@ -1,12 +1,25 @@
-"""
-Transform layer cho domain cards.
-Business logic / cleaning / dedup nhẹ bằng Pandas trước khi load.
-Transform nặng hơn (join, aggregate) để ở sql/staging và sql/warehouse,
-chạy bằng SQL trực tiếp trong BigQuery (xem docs/decisions/001-no-dbt.md).
-"""
+from datetime import timezone, datetime
 import pandas as pd
 
+from src.domains.cards.schema import CardRaw
+from src.infrastructure.logger import get_logger
 
-def transform(df: pd.DataFrame) -> pd.DataFrame:
-    # TODO: implement
-    raise NotImplementedError
+logger = get_logger(__name__)
+
+
+def transform_cards(df: pd.DataFrame) -> pd.DataFrame:
+    valid_rows, error_count = [], 0
+    for row in df.to_dict(orient="records"):
+        try:
+            CardRaw(**row)
+            valid_rows.append(row)
+        except Exception as e:
+            error_count += 1
+            logger.warning("Invalid card row | id=%s | error=%s",
+                           row.get("card_id"), e)
+    if error_count:
+        logger.warning("Dropped %d invalid rows out of %d", error_count, len(df))
+    result = pd.DataFrame(valid_rows)
+    result["_ingested_at"] = datetime.now(timezone.utc)
+    logger.info("Transformed cards | valid_rows=%d", len(result))
+    return result

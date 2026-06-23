@@ -15,8 +15,8 @@ dependencies = [
     "pyarrow>=16.0",          # thêm dòng này
 ]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "pytest>=8.2",
     "ruff>=0.5",
 ]

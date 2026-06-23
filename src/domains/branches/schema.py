@@ -1,10 +1,9 @@
-"""
-Schema/contract cho domain branches.
-Dùng Pydantic để validate data trước khi load vào BigQuery.
-"""
 from pydantic import BaseModel
 
 
-class BranchesSchema(BaseModel):
-    # TODO: định nghĩa field theo đúng cột thật trong branches.csv
-    pass
+class BranchRaw(BaseModel):
+    branch_id:    str
+    branch_name:  str | None = None
+    manager_name: str | None = None
+    city:         str | None = None   # NULL trong SQLite, giữ lại
+    country:      str | None = None   # NULL trong SQLite, giữ lại

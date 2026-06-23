@@ -1,13 +1,15 @@
-"""
-Extract layer cho domain branches.
-Nguồn: data/raw/branches.csv (batch, static)
-Output: DataFrame thô -> load.py đẩy vào BigQuery raw.branches
-"""
+import sqlite3
 import pandas as pd
 from pathlib import Path
 
+from src.infrastructure.config import settings
+from src.infrastructure.logger import get_logger
 
-def extract(csv_path: Path) -> pd.DataFrame:
-    """Đọc CSV thô, KHÔNG transform logic ở đây, chỉ đọc + cast type cơ bản nếu cần."""
-    # TODO: implement
-    raise NotImplementedError
+logger = get_logger(__name__)
+
+
+def extract_branches() -> pd.DataFrame:
+    with sqlite3.connect(Path(settings.sqlite_db_path)) as conn:
+        df = pd.read_sql("SELECT * FROM branches", conn)
+    logger.info("Extracted branches | rows=%d", len(df))
+    return df

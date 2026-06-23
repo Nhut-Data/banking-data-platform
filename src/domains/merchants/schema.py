@@ -1,10 +1,7 @@
-"""
-Schema/contract cho domain merchants.
-Dùng Pydantic để validate data trước khi load vào BigQuery.
-"""
 from pydantic import BaseModel
 
 
-class MerchantsSchema(BaseModel):
-    # TODO: định nghĩa field theo đúng cột thật trong merchants.csv
-    pass
+class MerchantRaw(BaseModel):
+    merchant_id:   str
+    merchant_name: str | None = None
+    city:          str | None = None
