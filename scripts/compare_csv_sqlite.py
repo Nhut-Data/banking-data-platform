@@ -15,8 +15,8 @@ from pathlib import Path
 
 import pandas as pd
 
-CSV_DIR = Path("data/raw")
-SQLITE_PATH = Path("data/raw/banking.db")
+CSV_DIR = Path("data/raw/csv")
+SQLITE_PATH = Path("data/raw/sqlite/bank_sqlite.db")
 TABLES = ["accounts", "branches", "cards", "customers", "loans", "merchants"]
 
 

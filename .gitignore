@@ -17,3 +17,4 @@ echo "google-cloud-sdk/" >> .gitignore
 echo "exit/" >> .gitignorea.csv
 data/raw/csv/*.csv
 *.db
+data/unused/
