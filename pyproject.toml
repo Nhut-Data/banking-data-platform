@@ -9,10 +9,11 @@ dependencies = [
     "pydantic>=2.7",
     "pydantic-settings>=2.3",
     "python-dotenv>=1.0",
-    "kafka-python>=2.0",
     "sqlalchemy>=2.0",        # thêm dòng này
     "psycopg2-binary>=2.9",   # thêm dòng này
     "pyarrow>=16.0",          # thêm dòng này
+    "faker>=25.0",
+    "confluent-kafka>=2.14.2",
 ]
 
 [dependency-groups]

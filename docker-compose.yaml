@@ -401,6 +401,24 @@ services:
       kafka:
         condition: service_healthy
     restart: always
+  producer:
+    build:
+      context: .
+      dockerfile: infra/docker/streaming/Dockerfile
+    command: python -m src.streaming.producer
+    env_file:
+      - .env
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      BANKING_DB_HOST: postgres
+      SQLITE_DB_PATH: /app/data/raw/sqlite/bank_sqlite.db
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: on-failure
 volumes:
   postgres-db-volume:
   kafka-data:   
