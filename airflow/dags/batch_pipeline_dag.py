@@ -1,23 +1,11 @@
-"""
-Batch pipeline DAG — extract 6 entity tĩnh từ SQLite → BigQuery raw.
-Schedule: @daily (chạy mỗi ngày 1 lần, hoặc trigger thủ công khi cần reload)
-
-Luồng:
-    [extract_<domain>] → [transform_<domain>] → [load_<domain>]
-                                                        ↓ (tất cả load xong)
-                                               [data_quality_check]
-                                                        ↓
-                                              [trigger_sql_transforms]
-"""
 from __future__ import annotations
-
 from datetime import datetime, timedelta
 
 from airflow.decorators import dag, task
 from airflow.operators.empty import EmptyOperator
+from src.infrastructure.quality import run_quality_checks
 import pandas as pd
 import importlib
-
 DEFAULT_ARGS = {
     "owner": "nhut",
     "retries": 2,
@@ -40,8 +28,7 @@ DOMAINS = ["customers", "accounts", "cards", "loans", "merchants", "branches"]
 def batch_pipeline():
 
     start = EmptyOperator(task_id="start")
-    quality_check = EmptyOperator(task_id="data_quality_check")   # Day 10
-    sql_transforms = EmptyOperator(task_id="trigger_sql_transforms")  # Day 13
+    sql_transforms = EmptyOperator(task_id="trigger_sql_transforms")
     end = EmptyOperator(task_id="end")
 
     load_tasks = []
@@ -50,7 +37,6 @@ def batch_pipeline():
 
         @task(task_id=f"extract_{domain}")
         def extract(domain_name: str = domain) -> str:
-            import importlib
             mod = importlib.import_module(f"src.domains.{domain_name}.extract")
             fn = getattr(mod, f"extract_{domain_name}")
             df = fn()
@@ -84,6 +70,18 @@ def batch_pipeline():
         start >> extracted
         load_tasks.append(loaded)
 
+    @task(task_id="data_quality_check")
+    def data_quality_check() -> None:
+        failed_domains = []
+        for domain in DOMAINS:
+            path = f"/opt/airflow/data/parquet_staging/{domain}_clean.parquet"
+            result = run_quality_checks(domain, path)
+            if not result.passed:
+                failed_domains.append(domain)
+        if failed_domains:
+            raise ValueError(f"Quality FAILED: {failed_domains}")
+
+    quality_check = data_quality_check()
     load_tasks >> quality_check >> sql_transforms >> end
 
 
