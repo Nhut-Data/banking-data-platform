@@ -77,7 +77,7 @@ x-airflow-common:
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
     # The following line can be used to set a custom config file, stored in the local config folder
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
-    PYTHONPATH: /opt/airflow/src
+    PYTHONPATH: /opt/airflow
     BANKING_DB_HOST: postgres  
   volumes:
     - ./airflow/dags:/opt/airflow/dags
@@ -357,7 +357,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
-      CLUSTER_ID: <base64-uuid-từ-lệnh-python-trước>
+      CLUSTER_ID: FpS5oa3wRsShmKnaESuSeQ
     ports:
       - "9094:9094"
     volumes:
