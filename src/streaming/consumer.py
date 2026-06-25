@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 import pandas as pd
 from confluent_kafka import Consumer, KafkaException, KafkaError
 from sqlalchemy import text
+from pathlib import Path
 
 from src.infrastructure.config import settings
 from src.infrastructure.logger import get_logger
@@ -40,29 +41,27 @@ def create_consumer() -> Consumer:
 
 
 def create_raw_transactions_table() -> None:
-    """Tạo bảng raw_transactions nếu chưa có (idempotent)."""
-    ddl = """
-    CREATE TABLE IF NOT EXISTS raw_transactions (
-        transaction_id   TEXT        PRIMARY KEY,
-        account_id       TEXT        NOT NULL,
-        merchant_id      TEXT        NOT NULL,
-        amount_usd       NUMERIC(12, 2),
-        transaction_date TIMESTAMPTZ NOT NULL,
-        ingested_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        processed        BOOLEAN     NOT NULL DEFAULT FALSE,
-        kafka_partition  INTEGER,
-        kafka_offset     BIGINT
-    );
-    CREATE INDEX IF NOT EXISTS idx_raw_txn_processed
-        ON raw_transactions (processed) WHERE processed = FALSE;
-    CREATE INDEX IF NOT EXISTS idx_raw_txn_ingested_at
-        ON raw_transactions (ingested_at);
-    """
-    with get_engine().connect() as conn:
-        conn.execute(text(ddl))
-        conn.commit()
-    logger.info("Table raw_transactions ready")
+    """Đọc DDL từ sql/postgres/ddl/raw_transactions.sql — single source of truth."""
+    # Tìm project root = thư mục chứa pyproject.toml
+    current = Path(__file__).resolve()
+    project_root = current
+    for _ in range(10):
+        if (project_root / "pyproject.toml").exists():
+            break
+        project_root = project_root.parent
 
+    sql_path = project_root / "sql" / "postgres" / "ddl" / "raw_transactions.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(f"DDL file không tìm thấy: {sql_path}")
+
+    ddl = sql_path.read_text()
+    with get_engine().connect() as conn:
+        for statement in ddl.split(";"):
+            stmt = statement.strip()
+            if stmt:
+                conn.execute(text(stmt))
+        conn.commit()
+    logger.info("Table raw_transactions ready | source=%s", sql_path)
 
 def merge_batch(batch: list[dict]) -> int:
     """
