@@ -37,31 +37,34 @@ def batch_pipeline():
 
         @task(task_id=f"extract_{domain}")
         def extract(domain_name: str = domain) -> str:
-            mod = importlib.import_module(f"src.domains.{domain_name}.extract")
-            fn = getattr(mod, f"extract_{domain_name}")
-            df = fn()
+            from src.infrastructure.pipeline import extract_from_sqlite
+            df = extract_from_sqlite(domain_name)
             path = f"/opt/airflow/data/parquet_staging/{domain_name}.parquet"
             df.to_parquet(path, index=False)
             return path
 
         @task(task_id=f"transform_{domain}")
         def transform(parquet_path: str, domain_name: str = domain) -> str:
-            mod = importlib.import_module(f"src.domains.{domain_name}.transform")
-            fn = getattr(mod, f"transform_{domain_name}")
+            import pandas as pd
+            from src.infrastructure.pipeline import validate_and_transform
+            from src.domains.configs import DOMAIN_CONFIGS
             df = pd.read_parquet(parquet_path)
-            df_clean = fn(df)
+            config = DOMAIN_CONFIGS[domain_name]
+            df_clean = validate_and_transform(df, config)
             out_path = parquet_path.replace(".parquet", "_clean.parquet")
             df_clean.to_parquet(out_path, index=False)
             return out_path
 
         @task(task_id=f"load_{domain}")
         def load(parquet_path: str, domain_name: str = domain) -> None:
+            import pandas as pd
+            from src.infrastructure.pipeline import load_to_bigquery
             from src.infrastructure.bigquery_client import get_bigquery_client
-            mod = importlib.import_module(f"src.domains.{domain_name}.load")
-            fn = getattr(mod, f"load_{domain_name}")
+            from src.domains.configs import DOMAIN_CONFIGS
             df = pd.read_parquet(parquet_path)
+            config = DOMAIN_CONFIGS[domain_name]
             client = get_bigquery_client()
-            fn(df, client)
+            load_to_bigquery(df, config, client)
 
         extracted = extract()
         transformed = transform(extracted)

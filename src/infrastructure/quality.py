@@ -101,26 +101,23 @@ def check_row_count(
 
 
 def run_quality_checks(domain: str, parquet_path: str) -> QualityResult:
-    """
-    Dispatch đúng check function cho từng domain.
-    Raise ValueError nếu domain không được support.
-    """
+    from src.domains.configs import DOMAIN_CONFIGS
     df = pd.read_parquet(parquet_path)
     result = QualityResult(domain=domain)
 
-    check_map = {
-        "customers": _check_customers,
-        "accounts":  _check_accounts,
-        "cards":     _check_cards,
-        "loans":     _check_loans,
-        "merchants": _check_merchants,
-        "branches":  _check_branches,
-    }
+    if domain not in DOMAIN_CONFIGS:
+        raise ValueError(f"Không có config cho domain: {domain}")
 
-    if domain not in check_map:
-        raise ValueError(f"Không có quality check cho domain: {domain}")
+    config = DOMAIN_CONFIGS[domain]
 
-    check_map[domain](result, df)
+    check_row_count(result, df, min_rows=1)
+    check_nulls(result, df, required_cols=config.required_cols)
+    check_duplicates(result, df, pk_col=config.pk_col)
+
+    if config.range_checks:
+        for col, (min_val, max_val) in config.range_checks.items():
+            if col in df.columns:
+                check_range(result, df, col=col, min_val=min_val, max_val=max_val)
 
     logger.info(result.summary())
     for err in result.errors:
