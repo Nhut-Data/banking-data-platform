@@ -10,7 +10,6 @@ class Settings(BaseSettings):
 
     # GCP
     gcp_project_id: str
-    google_application_credentials: str
     bq_location: str = "asia-southeast1"
     bq_dataset_raw: str = "raw"
     bq_dataset_staging: str = "staging"

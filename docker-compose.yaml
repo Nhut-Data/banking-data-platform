@@ -88,6 +88,7 @@ x-airflow-common:
     - ./sql:/opt/airflow/sql
     - ./data:/opt/airflow/data
     - ./secrets:/opt/airflow/secrets
+    - ${HOME}/.config/gcloud:/home/airflow/.config/gcloud:ro
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
