@@ -102,12 +102,13 @@ def check_row_count(
 
 def run_quality_checks(domain: str, parquet_path: str) -> QualityResult:
     from src.domains.configs import DOMAIN_CONFIGS
-    df = pd.read_parquet(parquet_path)
-    result = QualityResult(domain=domain)
 
+    # Check domain trước khi đọc file
     if domain not in DOMAIN_CONFIGS:
         raise ValueError(f"Không có config cho domain: {domain}")
 
+    df = pd.read_parquet(parquet_path)
+    result = QualityResult(domain=domain)
     config = DOMAIN_CONFIGS[domain]
 
     check_row_count(result, df, min_rows=1)

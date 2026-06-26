@@ -16,6 +16,13 @@ class CustomerSchema(BaseModel):
     credit_score: int | None = None
     created_at:   str | None = None
 
+    @field_validator("customer_id")
+    @classmethod
+    def pk_not_empty(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("customer_id không được rỗng")
+        return v
+
     @field_validator("credit_score")
     @classmethod
     def credit_score_range(cls, v):
@@ -24,12 +31,20 @@ class CustomerSchema(BaseModel):
         return v
 
 
+
 class AccountSchema(BaseModel):
     account_id:   str
     customer_id:  str
     account_type: str | None = None
     balance_usd:  float | None = None
     open_date:    str | None = None
+
+    @field_validator("balance_usd")
+    @classmethod
+    def balance_not_negative(cls, v):
+        if v is not None and v < 0:
+            raise ValueError(f"balance_usd không được âm: {v}")
+        return v
 
 
 class CardSchema(BaseModel):

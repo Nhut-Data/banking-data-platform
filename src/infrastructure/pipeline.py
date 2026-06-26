@@ -38,7 +38,9 @@ def validate_and_transform(
     df: pd.DataFrame,
     config: DomainConfig,
 ) -> pd.DataFrame:
-    df = df.where(pd.notna(df), None)
+    # Convert NaN → None cho tất cả columns
+    # df.where() chỉ work cho object dtype, không work cho float
+    df = df.astype(object).where(pd.notna(df), None)
 
     valid_rows, error_count = [], 0
     for row in df.to_dict(orient="records"):
