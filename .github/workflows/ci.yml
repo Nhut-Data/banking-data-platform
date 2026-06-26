@@ -1,0 +1,48 @@
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Lint with ruff
+        run: uv run ruff check src/ tests/
+
+      - name: Run unit tests
+        run: uv run pytest tests/unit/ -v --tb=short
+        env:
+          GCP_PROJECT_ID: banking-data-platform-500108
+          BQ_LOCATION: asia-southeast1
+          BQ_DATASET_RAW: raw
+          BQ_DATASET_STAGING: staging
+          BQ_DATASET_WAREHOUSE: warehouse
+          BQ_DATASET_MARTS: marts
+          BANKING_DB_HOST: localhost
+          BANKING_DB_PORT: 5432
+          BANKING_DB_NAME: banking_db
+          BANKING_DB_USER: airflow
+          BANKING_DB_PASSWORD: airflow
+          KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+          KAFKA_TOPIC_TRANSACTIONS: transactions.events
+          KAFKA_TOPIC_DLQ: transactions.dlq
+          SQLITE_DB_PATH: data/raw/sqlite/bank_sqlite.db

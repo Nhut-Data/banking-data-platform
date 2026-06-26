@@ -3,7 +3,6 @@ Schema cho transaction event — dùng chung cho producer và consumer.
 Producer serialize → JSON → Kafka → Consumer deserialize + validate.
 """
 from datetime import datetime
-from uuid import uuid4
 
 from pydantic import BaseModel, field_validator
 

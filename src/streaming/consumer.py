@@ -92,7 +92,7 @@ def merge_batch(batch: list[dict]) -> int:
     """)
 
     with get_engine().connect() as conn:
-        result = conn.execute(merge_sql, df.to_dict(orient="records"))
+        conn.execute(merge_sql, df.to_dict(orient="records"))
         conn.commit()
 
     logger.info("Merged batch | rows=%d", len(batch))

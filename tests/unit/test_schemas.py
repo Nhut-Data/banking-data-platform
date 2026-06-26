@@ -1,8 +1,7 @@
 """Unit tests cho Pydantic schemas."""
 import pytest
 from src.domains.configs import (
-    CustomerSchema, AccountSchema, CardSchema,
-    LoanSchema, MerchantSchema, BranchSchema,
+    CustomerSchema, LoanSchema,
 )
 from src.streaming.schemas import TransactionEvent
 from datetime import datetime, timezone
