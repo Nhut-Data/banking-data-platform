@@ -15,12 +15,14 @@ from datetime import datetime, timedelta
 
 from airflow.decorators import dag, task
 from airflow.operators.empty import EmptyOperator
+from src.infrastructure.alerting import on_failure_callback
 
 DEFAULT_ARGS = {
     "owner": "nhut",
     "retries": 2,
     "retry_delay": timedelta(minutes=2),
     "retry_exponential_backoff": True,
+    "on_failure_callback": on_failure_callback,
 }
 
 

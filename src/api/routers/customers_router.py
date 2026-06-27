@@ -3,6 +3,7 @@ from google.cloud import bigquery
 
 from src.api.dependencies import get_bq_client, get_project_id
 from src.api.schemas.customer_schema import CustomerResponse
+from src.api.schemas.customer_360_schema import Customer360Response
 
 router = APIRouter(prefix="/customers", tags=["customers"])
 
@@ -72,3 +73,25 @@ def list_customers(
     job_config = bigquery.QueryJobConfig(query_parameters=params)
     rows = list(client.query(query, job_config=job_config).result())
     return [CustomerResponse(**dict(r)) for r in rows]
+
+@router.get("/{customer_id}/360", response_model=Customer360Response)
+def get_customer_360(
+    customer_id: str,
+    client: bigquery.Client = Depends(get_bq_client),
+    project_id: str = Depends(get_project_id),
+) -> Customer360Response:
+    query = f"""
+        SELECT *
+        FROM `{project_id}.marts.customer_360`
+        WHERE customer_id = @customer_id
+        LIMIT 1
+    """
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ScalarQueryParameter("customer_id", "STRING", customer_id)
+        ]
+    )
+    rows = list(client.query(query, job_config=job_config).result())
+    if not rows:
+        raise HTTPException(status_code=404, detail=f"Customer {customer_id} not found")
+    return Customer360Response(**dict(rows[0]))

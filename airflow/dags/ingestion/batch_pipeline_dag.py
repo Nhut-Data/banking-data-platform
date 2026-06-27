@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from airflow.decorators import dag, task
 from airflow.operators.empty import EmptyOperator
 from src.infrastructure.quality import run_quality_checks
+from src.infrastructure.alerting import on_failure_callback
 import pandas as pd
 import importlib
 DEFAULT_ARGS = {
@@ -11,6 +12,7 @@ DEFAULT_ARGS = {
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
     "retry_exponential_backoff": True,
+    "on_failure_callback": on_failure_callback,
 }
 
 DOMAINS = ["customers", "accounts", "cards", "loans", "merchants", "branches"]

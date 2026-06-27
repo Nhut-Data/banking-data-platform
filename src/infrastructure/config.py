@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     kafka_topic_transactions: str = "transactions.events"
     kafka_topic_dlq: str = "transactions.dlq"
     kafka_bootstrap_servers_external: str = ""
+    slack_webhook_url: str = "" 
 
     # SQLite
     sqlite_db_path: str = "data/raw/sqlite/bank_sqlite.db"

@@ -58,3 +58,21 @@ def get_transactions_by_account(
     )
     rows = list(client.query(query, job_config=job_config).result())
     return [TransactionResponse(**dict(r)) for r in rows]
+
+@router.get("/summary", response_model=list[TransactionSummaryResponse])
+def get_mart_summary(
+    client: bigquery.Client = Depends(get_bq_client),
+    project_id: str = Depends(get_project_id),
+) -> list[TransactionSummaryResponse]:
+    query = f"""
+        SELECT
+            CAST(transaction_date AS STRING) AS transaction_date,
+            total_transactions,
+            total_amount_usd,
+            avg_amount_usd
+        FROM `{project_id}.marts.daily_transaction_summary`
+        ORDER BY transaction_date DESC
+        LIMIT 30
+    """
+    rows = list(client.query(query).result())
+    return [TransactionSummaryResponse(**dict(r)) for r in rows]
